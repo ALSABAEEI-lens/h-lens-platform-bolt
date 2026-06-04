@@ -1,0 +1,462 @@
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { PermissionsProvider } from './contexts/PermissionsContext';
+import { VendorProvider } from './contexts/VendorContext';
+import { ClientPortalProvider } from './contexts/ClientPortalContext';
+import { HideAmountsProvider } from './contexts/HideAmountsContext';
+import { getTheme } from './theme/tokens';
+import { useRouteTracking, getLastVisitedPage, navigate } from './lib/router';
+import { supabase } from './lib/supabaseClient';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
+import { NavTransitionOverlay } from './components/NavTransitionOverlay';
+import { BootSplash } from './components/BootSplash';
+
+// ─────────────────────────────────────────────────────────────
+// LAZY-LOADED PAGE COMPONENTS (code splitting)
+// ─────────────────────────────────────────────────────────────
+const NewAdminDashboard = lazy(() =>
+  import('./components/admin/NewAdminDashboard').then(m => ({ default: m.NewAdminDashboard }))
+);
+const ClientDashboard = lazy(() =>
+  import('./components/client/ClientDashboard').then(m => ({ default: m.ClientDashboard }))
+);
+const VendorPortal = lazy(() =>
+  import('./components/vendor/VendorPortal').then(m => ({ default: m.VendorPortal }))
+);
+const VendorRegistrationForm = lazy(() =>
+  import('./components/vendor-registration/VendorRegistrationForm').then(m => ({ default: m.VendorRegistrationForm }))
+);
+const Login = lazy(() =>
+  import('./components/auth/Login').then(m => ({ default: m.Login }))
+);
+const SupplierAuth = lazy(() => import('./components/auth/SupplierAuth'));
+const ClientAuth = lazy(() => import('./components/client/ClientAuth'));
+const ClientPortal = lazy(() =>
+  import('./components/client/ClientPortal').then(m => ({ default: m.ClientPortal }))
+);
+const LandingPage = lazy(() =>
+  import('./components/landing/LandingPage').then(m => ({ default: m.LandingPage }))
+);
+const TermsAndConditions = lazy(() =>
+  import('./components/legal/TermsAndConditions').then(m => ({ default: m.TermsAndConditions }))
+);
+const PrivacyPolicy = lazy(() =>
+  import('./components/legal/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy }))
+);
+
+// ─────────────────────────────────────────────────────────────
+// ROUTE CONSTANTS
+// ─────────────────────────────────────────────────────────────
+const ROUTES = {
+  // Public
+  VENDOR_REGISTRATION: '/join',
+  VENDOR_LOGIN:        '/vendor/login',
+  VENDOR_PORTAL:       '/vendor',
+  TERMS:               '/terms-and-conditions',
+  PRIVACY:             '/privacy-policy',
+
+  // Client Portal
+  CLIENT_LOGIN:        '/client',
+  CLIENT_PORTAL:       '/client/dashboard',
+
+  // Protected
+  ADMIN_LOGIN:         '/admin',
+  ADMIN_DASHBOARD:     '/admin',
+} as const;
+
+// ─────────────────────────────────────────────────────────────
+// VENDOR SESSION HELPERS
+// ─────────────────────────────────────────────────────────────
+interface VendorSession {
+  token: string;
+  access_token?: string;
+  expiresAt: string;
+}
+
+interface VendorData {
+  id: string;
+  email: string;
+  name: string;
+  vendor_type?: string;
+  primary_city?: string;
+  profile_image?: string;
+  nationality?: string;
+  id_number?: string;
+  phone?: string;
+  status?: string;
+}
+
+function getStoredVendorSession(): { vendor: VendorData; session: VendorSession } | null {
+  try {
+    const sessionRaw = localStorage.getItem('vendor_session');
+    const vendorRaw  = localStorage.getItem('vendor_data');
+    if (!sessionRaw || !vendorRaw) return null;
+
+    const session: VendorSession = JSON.parse(sessionRaw);
+    const vendor: VendorData     = JSON.parse(vendorRaw);
+
+    if (new Date(session.expiresAt) < new Date()) {
+      localStorage.removeItem('vendor_session');
+      localStorage.removeItem('vendor_data');
+      return null;
+    }
+
+    return { vendor, session };
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// CLIENT SESSION HELPERS
+// ─────────────────────────────────────────────────────────────
+interface ClientData {
+  id: string;
+  email: string;
+  name: string;
+  client_image?: string | null;
+}
+
+interface ClientSession {
+  token: string;
+  access_token?: string;
+  expiresAt: string;
+}
+
+function getStoredClientSession(): { client: ClientData; session: ClientSession } | null {
+  try {
+    const sessionRaw = localStorage.getItem('client_session');
+    const clientRaw = localStorage.getItem('client_data');
+    if (!sessionRaw || !clientRaw) return null;
+
+    const session: ClientSession = JSON.parse(sessionRaw);
+    const client: ClientData = JSON.parse(clientRaw);
+
+    if (new Date(session.expiresAt) < new Date()) {
+      localStorage.removeItem('client_session');
+      localStorage.removeItem('client_data');
+      return null;
+    }
+
+    return { client, session };
+  } catch {
+    return null;
+  }
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// LOADING FALLBACK FOR SUSPENSE
+// ─────────────────────────────────────────────────────────────
+function LoadingFallback() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f9fafb',
+    }}>
+      <div className="page-loading-placeholder" />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column' as const,
+        alignItems: 'center',
+        gap: '12px',
+      }}>
+        <div style={{
+          width: '36px',
+          height: '36px',
+          border: '3px solid #e5e7eb',
+          borderTopColor: '#6366f1',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <span style={{ color: '#6b7280', fontSize: '15px', fontFamily: 'sans-serif' }}>
+          جاري التحميل...
+        </span>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// APP CONTENT
+// ─────────────────────────────────────────────────────────────
+function AppContent() {
+  const { user, profile, loading } = useAuth();
+  const { isDarkMode } = useTheme();
+  const theme = getTheme(isDarkMode);
+
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [hasRestoredRoute, setHasRestoredRoute] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Track route changes and save to localStorage
+  useRouteTracking();
+
+  useEffect(() => {
+    const handlePathChange = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handlePathChange);
+    return () => window.removeEventListener('popstate', handlePathChange);
+  }, []);
+
+  // Pull-to-refresh: remount page components to reload data without killing sessions
+  useEffect(() => {
+    const handleRefresh = () => setRefreshKey(k => k + 1);
+    window.addEventListener('pull-to-refresh', handleRefresh);
+    return () => window.removeEventListener('pull-to-refresh', handleRefresh);
+  }, []);
+
+  // Clear admin session when on vendor portal (once, not on every render)
+  useEffect(() => {
+    if (currentPath === ROUTES.VENDOR_PORTAL && user) {
+      supabase.auth.signOut().catch(() => {});
+    }
+  }, [currentPath]);
+
+  // Restore last visited page on initial load (any portal, not just admin)
+  useEffect(() => {
+    if (hasRestoredRoute || loading) return;
+
+    const lastVisitedPage = getLastVisitedPage();
+    const currentPathname = window.location.pathname;
+    const currentHash = window.location.hash;
+
+    if (!lastVisitedPage || lastVisitedPage === currentPathname + window.location.search + currentHash) {
+      setHasRestoredRoute(true);
+      return;
+    }
+
+    // Parse the saved page into pathname + hash parts
+    let savedPathname = lastVisitedPage;
+    let savedHash = '';
+    const hashIdx = lastVisitedPage.indexOf('#');
+    if (hashIdx !== -1) {
+      savedPathname = lastVisitedPage.slice(0, hashIdx);
+      savedHash = lastVisitedPage.slice(hashIdx);
+    }
+
+    // Case 1: plain /admin with no hash — restore deep admin page if authenticated
+    const onPlainAdmin = currentPathname === ROUTES.ADMIN_LOGIN && !currentHash;
+    if (onPlainAdmin && user && profile) {
+      const isDeepAdminPage = lastVisitedPage.startsWith('/admin#') || lastVisitedPage.startsWith('/admin/');
+      if (isDeepAdminPage) {
+        window.history.replaceState({}, '', lastVisitedPage);
+        // NewAdminDashboard reads hash on mount via parseHash()
+      }
+      setHasRestoredRoute(true);
+      return;
+    }
+
+    // Case 2: on landing (/) with a saved deep page — restore if the matching session exists
+    if (currentPathname === '/' && !currentHash) {
+      if (savedPathname.startsWith('/admin') && user && profile) {
+        window.history.replaceState({}, '', lastVisitedPage);
+        setCurrentPath(savedPathname);
+      } else if (savedPathname.startsWith('/vendor') && getStoredVendorSession()) {
+        window.history.replaceState({}, '', lastVisitedPage);
+        setCurrentPath(savedPathname);
+      } else if (savedPathname.startsWith('/client') && getStoredClientSession()) {
+        window.history.replaceState({}, '', lastVisitedPage);
+        setCurrentPath(savedPathname);
+      }
+      setHasRestoredRoute(true);
+      return;
+    }
+
+    // Case 3: on a portal root without hash — restore the saved sub-page/hash of that portal
+    const onVendorRoot = currentPathname === ROUTES.VENDOR_PORTAL && !currentHash;
+    if (onVendorRoot && savedPathname === ROUTES.VENDOR_PORTAL && savedHash && getStoredVendorSession()) {
+      window.history.replaceState({}, '', lastVisitedPage);
+      setHasRestoredRoute(true);
+      return;
+    }
+
+    const onClientRoot = currentPathname === ROUTES.CLIENT_PORTAL && !currentHash;
+    if (onClientRoot && savedPathname === ROUTES.CLIENT_PORTAL && savedHash && getStoredClientSession()) {
+      window.history.replaceState({}, '', lastVisitedPage);
+      setHasRestoredRoute(true);
+      return;
+    }
+
+    setHasRestoredRoute(true);
+  }, [loading, user, profile, hasRestoredRoute]);
+
+  const renderVendorPortal = (stored: { vendor: VendorData; session: VendorSession }) => (
+    <VendorProvider
+      initialVendor={{
+        id:            stored.vendor.id,
+        email:         stored.vendor.email,
+        full_name:     stored.vendor.name,
+        phone:         stored.vendor.phone || '',
+        status:        stored.vendor.status || 'active',
+        vendor_type:   stored.vendor.vendor_type,
+        primary_city:  stored.vendor.primary_city,
+        profile_image: stored.vendor.profile_image,
+        nationality:   stored.vendor.nationality,
+        id_number:     stored.vendor.id_number,
+      }}
+      initialSession={stored.session}
+    >
+      <VendorPortal />
+    </VendorProvider>
+  );
+
+  // ── PUBLIC ROUTES ──
+
+  if (currentPath === '/') {
+    return <Suspense fallback={<div className="page-loading-placeholder" />}><LandingPage onNavigate={(path) => navigate(path)} /></Suspense>;
+  }
+
+  if (currentPath === ROUTES.VENDOR_REGISTRATION) {
+    return <ErrorBoundary><VendorRegistrationForm /></ErrorBoundary>;
+  }
+
+  if (currentPath === ROUTES.TERMS || currentPath === '/terms') {
+    return <TermsAndConditions />;
+  }
+
+  if (currentPath === ROUTES.PRIVACY || currentPath === '/privacy') {
+    return <PrivacyPolicy />;
+  }
+
+  // ── VENDOR ROUTES ──
+
+  // /vendor → has session? show portal : redirect to login
+  if (currentPath === ROUTES.VENDOR_PORTAL) {
+    const stored = getStoredVendorSession();
+    if (stored) {
+      return <ErrorBoundary key={refreshKey}>{renderVendorPortal(stored)}</ErrorBoundary>;
+    }
+    navigate(ROUTES.VENDOR_LOGIN);
+    return null;
+  }
+
+  // /vendor-login → has session? go to portal : show login
+  if (currentPath === ROUTES.VENDOR_LOGIN) {
+    const stored = getStoredVendorSession();
+    if (stored) {
+      navigate(ROUTES.VENDOR_PORTAL);
+      return null;
+    }
+    // Clear vendor session if accessing vendor login
+    localStorage.removeItem('vendor_session');
+    localStorage.removeItem('vendor_data');
+    return (
+      <SupplierAuth
+        onSuccess={() => navigate(ROUTES.VENDOR_PORTAL, false, { reveal: true, forceDark: true })}
+      />
+    );
+  }
+
+  // ── CLIENT PORTAL ROUTES ──
+  // Catch ALL /client* paths before admin routes
+  if (currentPath.startsWith('/client')) {
+    const stored = getStoredClientSession();
+
+    // Has valid session → show portal (regardless of exact sub-path)
+    if (stored) {
+      // If on login page, redirect to dashboard
+      if (currentPath === ROUTES.CLIENT_LOGIN) {
+        navigate(ROUTES.CLIENT_PORTAL);
+        return null;
+      }
+      return (
+        <ErrorBoundary key={refreshKey}>
+          <ClientPortalProvider
+            initialClient={{
+              id: stored.client.id,
+              email: stored.client.email,
+              name: stored.client.name,
+              client_image: stored.client.client_image || null,
+            }}
+            initialSession={stored.session}
+          >
+            <ClientPortal />
+          </ClientPortalProvider>
+        </ErrorBoundary>
+      );
+    }
+
+    // No session → show login
+    if (currentPath !== ROUTES.CLIENT_LOGIN) {
+      navigate(ROUTES.CLIENT_LOGIN);
+      return null;
+    }
+    localStorage.removeItem('client_session');
+    localStorage.removeItem('client_data');
+    return (
+      <ClientAuth
+        onSuccess={() => navigate(ROUTES.CLIENT_PORTAL, false, { reveal: true, forceDark: true })}
+      />
+    );
+  }
+
+  // ── ADMIN ROUTES ──
+
+  const isAdminPath =
+    currentPath === ROUTES.ADMIN_LOGIN ||
+    currentPath.startsWith('/admin');
+
+  if (!isAdminPath) {
+    // Don't redirect public paths to admin — show landing page as fallback
+    if (currentPath === '/' || currentPath === '') {
+      return <Suspense fallback={<div className="page-loading-placeholder" />}><LandingPage onNavigate={(path) => navigate(path)} /></Suspense>;
+    }
+    navigate(ROUTES.ADMIN_LOGIN);
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: theme.background.page,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div className="page-loading-placeholder" />
+        <div style={{ color: theme.text.secondary }}>جارٍ التحميل...</div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    // Clear vendor session if accessing admin portal
+    localStorage.removeItem('vendor_session');
+    localStorage.removeItem('vendor_data');
+    return <Login />;
+  }
+
+  return <ErrorBoundary key={refreshKey}><NewAdminDashboard /></ErrorBoundary>;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ROOT APP
+// ─────────────────────────────────────────────────────────────
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <PermissionsProvider>
+        <HideAmountsProvider>
+        <NotificationProvider>
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingFallback />}>
+              <AppContent />
+            </Suspense>
+          </ErrorBoundary>
+          <NavTransitionOverlay />
+          <BootSplash />
+        </NotificationProvider>
+        </HideAmountsProvider>
+        </PermissionsProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
+export default App;
