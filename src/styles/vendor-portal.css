@@ -1,0 +1,472 @@
+/* ===== VENDOR PORTAL — DESIGN SYSTEM (matched to admin reference) ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.vp-root *{box-sizing:border-box;margin:0;padding:0}
+.vp-root ::-webkit-scrollbar{width:3px}
+.vp-root ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* ===== DARK (default) ===== */
+.vp-root{
+  --bg:#050d1e;
+  --sideBg:linear-gradient(175deg,#07112a 0%,#040c1c 100%);
+  --card:rgba(8,18,38,0.95);
+  --cardSolid:#0a1628;
+  --border:rgba(255,255,255,0.07);
+  --borderHi:rgba(59,130,246,0.3);
+  --hdr:rgba(5,13,30,0.97);
+  --textPri:#e2e8f0;
+  --textSec:rgba(255,255,255,0.5);
+  --textMut:rgba(255,255,255,0.22);
+  --navText:rgba(255,255,255,0.58);
+  --navActive:rgba(30,64,175,0.25);
+  --navActiveBorder:rgba(59,130,246,0.3);
+  --pillBg:rgba(255,255,255,0.05);
+  --pillBorder:rgba(255,255,255,0.08);
+  --inp:rgba(255,255,255,0.05);
+  --inpBorder:rgba(255,255,255,0.1);
+  --rowHover:rgba(255,255,255,0.03);
+  --tblHead:rgba(255,255,255,0.04);
+  --statBg:rgba(255,255,255,0.04);
+  --sortBg:rgba(255,255,255,0.05);
+  --sortBorder:rgba(255,255,255,0.08);
+  --tagBg:rgba(59,130,246,0.12);
+  --tagC:#3b82f6;
+  --secLbl:rgba(255,255,255,0.18);
+  --iconEdit:rgba(59,130,246,0.12);
+  --iconDel:rgba(239,68,68,0.1);
+}
+
+/* ===== LIGHT ===== */
+.vp-root.light{
+  --bg:#f0f4fb;
+  --sideBg:linear-gradient(175deg,#1a3a6b 0%,#0e2247 100%);
+  --card:#ffffff;
+  --cardSolid:#ffffff;
+  --border:rgba(0,0,0,0.07);
+  --borderHi:rgba(37,99,235,0.3);
+  --hdr:rgba(255,255,255,0.98);
+  --textPri:#0f172a;
+  --textSec:#475569;
+  --textMut:#94a3b8;
+  --navText:rgba(255,255,255,0.68);
+  --navActive:rgba(255,255,255,0.14);
+  --navActiveBorder:rgba(255,255,255,0.3);
+  --pillBg:rgba(255,255,255,0.1);
+  --pillBorder:rgba(255,255,255,0.14);
+  --inp:rgba(0,0,0,0.04);
+  --inpBorder:rgba(0,0,0,0.1);
+  --rowHover:#f8faff;
+  --tblHead:rgba(0,0,0,0.03);
+  --statBg:rgba(0,0,0,0.03);
+  --sortBg:rgba(0,0,0,0.04);
+  --sortBorder:rgba(0,0,0,0.08);
+  --tagBg:rgba(37,99,235,0.08);
+  --tagC:#2563eb;
+  --secLbl:rgba(255,255,255,0.35);
+  --iconEdit:rgba(37,99,235,0.08);
+  --iconDel:rgba(239,68,68,0.07);
+}
+
+/* Stat card hover */
+.sc:hover{transform:translateY(-2px)!important;box-shadow:0 12px 28px rgba(0,0,0,.25)!important}
+
+/* ===== NAV ITEMS ===== */
+.vp-nav-item{
+  transition:all .2s;cursor:pointer;border-radius:10px;display:flex;align-items:center;
+  gap:10px;padding:8px 11px;font-size:.8rem;font-weight:600;
+  color:var(--navText);border:1px solid transparent;background:transparent;
+  width:100%;text-align:right;font-family:Cairo,sans-serif;margin-bottom:2px;
+}
+.vp-nav-item:hover{color:rgba(255,255,255,0.95);background:rgba(255,255,255,0.06)}
+.vp-nav-item.active{color:rgba(255,255,255,0.95);background:var(--navActive);border-color:var(--navActiveBorder)}
+.vp-nav-item.collapsed{justify-content:center;padding:10px;gap:0}
+.vp-nav-item.collapsed:hover{transform:scale(1.08)}
+
+/* Nav icon box */
+.vp-nav-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+
+/* ===== CARDS ===== */
+.vp-card{border-radius:16px;background:var(--card);border:1px solid var(--border);transition:all .25s}
+
+/* ===== BUTTONS ===== */
+.vp-btn-primary{
+  display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 16px;border-radius:10px;
+  background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;color:white;
+  font-family:Cairo,sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;
+  transition:all .2s;box-shadow:0 2px 12px rgba(37,99,235,0.35);
+}
+.vp-btn-primary:hover{opacity:.85}
+
+.vp-btn-ghost{
+  display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;
+  background:var(--sortBg);border:1px solid var(--sortBorder);color:var(--textSec);
+  font-family:Cairo,sans-serif;font-size:.79rem;font-weight:600;cursor:pointer;transition:all .2s;
+}
+.vp-btn-ghost:hover{opacity:.8;border-color:var(--borderHi)}
+
+/* ===== INPUTS ===== */
+.vp-inp{
+  width:100%;padding:9px 12px;border-radius:9px;background:var(--inp);
+  border:1px solid var(--inpBorder);color:var(--textPri);
+  font-family:Cairo,sans-serif;font-size:.82rem;outline:none;transition:border .15s;
+}
+.vp-inp:focus{border-color:#3b82f6}
+.vp-inp:disabled{opacity:.5;cursor:not-allowed}
+.vp-inp-compact{min-width:110px}
+@media(max-width:640px){.vp-inp-compact{min-width:90px;padding:9px 8px!important;font-size:.78rem}}
+@media(max-width:380px){.vp-inp-compact{min-width:82px}}
+
+.vp-select{
+  width:100%;padding:9px 32px 9px 12px;border-radius:9px;background:var(--inp);
+  border:1px solid var(--inpBorder);color:var(--textPri);
+  font-family:Cairo,sans-serif;font-size:.82rem;outline:none;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 12px center;
+}
+.vp-select:disabled{opacity:.5;background-image:none;padding-right:12px}
+
+/* ===== TABS ===== */
+.vp-tab{
+  padding:9px 16px;border-radius:10px 10px 0 0;background:transparent;
+  border:1px solid transparent;border-bottom:none;color:var(--textMut);
+  font-family:Cairo,sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;
+  transition:all .2s;margin-bottom:-1px;display:flex;align-items:center;gap:6px;
+}
+.vp-tab.active{background:var(--tagBg);border-color:var(--borderHi);color:var(--tagC);font-weight:700}
+
+/* ===== BADGES ===== */
+.vp-badge{padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;white-space:nowrap}
+
+/* ===== CHIPS ===== */
+.vp-chip{
+  padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif;
+  font-size:.78rem;font-weight:600;transition:all .15s;display:flex;align-items:center;gap:5px;
+  background:transparent;border:1px solid var(--border);color:var(--textSec);
+}
+.vp-chip:hover{border-color:var(--borderHi);color:var(--tagC)}
+.vp-chip.active{background:var(--tagBg);border-color:var(--borderHi);color:var(--tagC)}
+
+/* ===== PAGE ANIMATION ===== */
+.vp-page-enter{animation:fadeUp .35s ease}
+
+/* ===== TABLE ===== */
+.vp-tbl-head{
+  background:var(--tblHead);border-bottom:1px solid var(--border);
+  padding:8px 20px;font-size:.63rem;font-weight:700;color:var(--textMut);
+  text-transform:uppercase;letter-spacing:.07em;
+}
+.vp-tbl-row{padding:11px 20px;border-bottom:1px solid var(--border);transition:background .15s}
+.vp-tbl-row:hover{background:var(--rowHover)}
+
+/* ===== RESPONSIVE GRID HELPERS ===== */
+.vp-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.vp-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vp-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* Form grid: 2 cols on desktop, 1 col on mobile */
+.vp-grid-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Table header/row grid for projects & invoices */
+.vp-tbl-grid{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 0.8fr 40px;gap:8px;padding:12px 18px;align-items:center}
+.vp-tbl-grid-head{padding:10px 18px;background:var(--tblHead);border-bottom:1px solid var(--border);font-size:.65rem;font-weight:700;color:var(--textMut);text-transform:uppercase;letter-spacing:.06em}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:768px){
+  /* Stats: 2 cols on mobile */
+  .vp-grid-4{grid-template-columns:repeat(2,1fr)}
+  .vp-grid-3{grid-template-columns:repeat(2,1fr)}
+
+  /* Table: card layout on mobile */
+  .vp-tbl-grid{grid-template-columns:1fr!important;gap:6px;padding:12px 14px}
+  .vp-tbl-grid-head{display:none!important}
+
+  /* Chips: compact */
+  .vp-chip{padding:5px 10px;font-size:.72rem}
+
+  /* Cards */
+  .vp-card{border-radius:12px;padding:14px 14px!important}
+
+  /* No hover effects on touch */
+  .sc:hover{transform:none!important}
+
+  /* Tabs: horizontal scroll, hide scrollbar */
+  .vp-tabs-scroll{
+    flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;padding-bottom:4px;
+    scrollbar-width:none;-ms-overflow-style:none;
+    margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px;
+  }
+  .vp-tabs-scroll::-webkit-scrollbar{display:none;height:0;width:0}
+  .vp-tab{white-space:nowrap;flex-shrink:0;padding:8px 12px;font-size:.75rem}
+}
+
+/* Phone / narrow screens: collapse form grids + shrink inputs */
+@media(max-width:640px){
+  .vp-grid-form{grid-template-columns:1fr!important;gap:12px}
+  .vp-grid-2{grid-template-columns:1fr!important}
+  .vp-inp,.vp-select{font-size:.85rem;padding:10px 12px}
+}
+
+/* Very small screens (≤380px) */
+@media(max-width:380px){
+  .vp-card{padding:12px 12px!important;border-radius:10px}
+  .vp-tab{padding:7px 10px;font-size:.72rem}
+}
+
+/* Profile hero: tighten on mobile */
+@media(max-width:540px){
+  .vp-profile-hero{gap:12px!important;padding:14px 14px!important}
+  .vp-profile-hero > div:first-child > div:first-child,
+  .vp-profile-hero img[alt=""]{width:56px!important;height:56px!important}
+}
+
+/* Page scroll padding on mobile */
+@media(max-width:640px){
+  .vp-page-scroll{padding:14px!important}
+}
+@media(max-width:380px){
+  .vp-page-scroll{padding:12px 10px!important}
+}
+
+/* ── Mobile typography pass — keep sizes consistent and a touch smaller across
+   the vendor dashboard (revision banner, greeting card, completion card,
+   stat tiles) so the same element doesn't render at three different scales. */
+@media(max-width:640px){
+  /* Page H1 */
+  .vp-content h1{font-size:1.1rem!important;margin-bottom:16px!important}
+
+  /* Revision banner */
+  .vp-revision-banner{padding:0.85rem 0.95rem!important;border-radius:10px!important}
+  .vp-revision-banner .vp-revision-title{font-size:0.85rem!important}
+  .vp-revision-banner .vp-revision-sub{font-size:0.78rem!important;line-height:1.65!important}
+  .vp-revision-banner .vp-revision-notes{font-size:0.75rem!important;line-height:1.7!important}
+  .vp-revision-banner .vp-revision-notes-title{font-size:0.72rem!important}
+  .vp-revision-start-btn{font-size:0.78rem!important;padding:0.45rem 0.95rem!important;border-radius:8px!important}
+
+  /* Stat tiles + dashboard cards: consistent type scale */
+  .vp-stat-num{font-size:1.35rem!important;line-height:1.1!important}
+  .vp-stat-label{font-size:0.78rem!important}
+  .vp-stat-sub{font-size:0.68rem!important}
+
+  /* Buttons inside cards */
+  .vp-btn-primary,.vp-btn-secondary{font-size:0.78rem!important;padding:8px 14px!important;border-radius:8px!important}
+
+  /* Card bodies */
+  .vp-card{padding:13px 13px!important}
+  .vp-card h2,.vp-card h3{font-size:0.95rem!important}
+}
+@media(max-width:380px){
+  .vp-content h1{font-size:1.02rem!important}
+  .vp-stat-num{font-size:1.25rem!important}
+  .vp-revision-banner .vp-revision-title{font-size:0.82rem!important}
+  .vp-revision-banner .vp-revision-sub{font-size:0.75rem!important}
+  .vp-revision-banner .vp-revision-notes{font-size:0.72rem!important}
+  .vp-revision-start-btn{font-size:0.74rem!important;padding:0.4rem 0.85rem!important}
+}
+
+/* ─── VendorEditSubmission — modern, mobile-first ─────────────────── */
+.vp-edit-root{
+  display:flex;flex-direction:column;gap:14px;
+  font-family:'Tajawal','Cairo','Segoe UI',sans-serif;
+}
+
+/* Banner: compact one-row pill */
+.vp-edit-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(245,158,11,0.10) 0%,rgba(8,18,38,0.45) 100%);
+  border:1px solid rgba(245,158,11,0.30);
+}
+.vp-edit-banner-icon{
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(245,158,11,0.18);
+}
+.vp-edit-banner-text{flex:1;min-width:0}
+.vp-edit-banner-title{
+  font-size:13px;font-weight:800;color:var(--color-text-primary,#e2e8f0);
+  margin-bottom:2px;
+}
+.vp-edit-banner-sub{
+  font-size:11.5px;line-height:1.6;
+  color:var(--color-text-secondary,#94a3b8);
+}
+.vp-edit-back-btn{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(148,163,184,0.10);
+  border:1px solid var(--color-border,rgba(148,163,184,0.18));
+  color:var(--color-text-primary,#e2e8f0);
+  cursor:pointer;transition:all .2s;
+  font-family:inherit;
+}
+.vp-edit-back-btn:hover{background:rgba(148,163,184,0.18)}
+
+/* Progress meta + bar */
+.vp-edit-progress{
+  display:flex;flex-direction:column;gap:6px;
+  padding:0 2px;
+}
+.vp-edit-progress-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:11.5px;
+}
+.vp-edit-progress-step{color:var(--color-text-muted,#64748b);font-weight:600}
+.vp-edit-progress-active{color:#fbbf24;font-weight:700}
+.vp-edit-progress-bar{
+  height:4px;border-radius:4px;overflow:hidden;
+  background:rgba(148,163,184,0.12);
+}
+.vp-edit-progress-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,#f59e0b,#fbbf24);
+  transition:width .35s cubic-bezier(.4,0,.2,1);
+}
+
+/* Stepper chips — horizontally scrollable */
+.vp-edit-stepper{
+  display:flex;gap:6px;
+  padding:8px;border-radius:14px;
+  background:var(--color-surface,rgba(8,18,38,0.45));
+  border:1px solid var(--color-border,rgba(148,163,184,0.14));
+  overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.vp-edit-stepper::-webkit-scrollbar{display:none}
+.vp-edit-step-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:999px;
+  background:transparent;
+  border:1px solid var(--color-border,rgba(148,163,184,0.18));
+  color:var(--color-text-secondary,#94a3b8);
+  font-size:12px;font-weight:700;
+  cursor:pointer;flex-shrink:0;white-space:nowrap;
+  font-family:inherit;transition:all .2s;
+}
+.vp-edit-step-chip .vp-edit-step-num{
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(148,163,184,0.12);
+  font-size:10px;font-weight:800;
+}
+.vp-edit-step-chip.is-done{
+  background:rgba(34,197,94,0.10);
+  border-color:rgba(34,197,94,0.35);
+  color:#22c55e;
+}
+.vp-edit-step-chip.is-done .vp-edit-step-num{
+  background:rgba(34,197,94,0.18);color:#22c55e;
+}
+.vp-edit-step-chip.is-active{
+  background:rgba(245,158,11,0.12);
+  border-color:rgba(245,158,11,0.45);
+  color:#fbbf24;
+}
+.vp-edit-step-chip.is-active .vp-edit-step-num{
+  background:#f59e0b;color:#0a1024;
+}
+
+/* Admin note for current step */
+.vp-edit-note{
+  padding:12px 14px;border-radius:12px;
+  background:rgba(245,158,11,0.06);
+  border:1px solid rgba(245,158,11,0.25);
+}
+.vp-edit-note-title{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11.5px;font-weight:800;color:#fbbf24;
+  margin-bottom:8px;
+}
+.vp-edit-note-body{
+  display:flex;flex-direction:column;gap:4px;
+}
+.vp-edit-note-line{
+  font-size:13px;line-height:1.7;
+  color:var(--color-text-primary,#e2e8f0);
+}
+.vp-edit-note-fields{
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px;
+  margin-top:10px;padding-top:8px;
+  border-top:1px dashed rgba(245,158,11,0.20);
+}
+.vp-edit-note-fields-label{
+  font-size:11px;color:var(--color-text-muted,#64748b);font-weight:700;
+}
+.vp-edit-note-field-chip{
+  font-size:10.5px;font-weight:700;
+  padding:3px 10px;border-radius:999px;
+  background:rgba(245,158,11,0.10);
+  border:1px solid rgba(245,158,11,0.30);
+  color:#fbbf24;
+}
+
+/* Form card already styled by .form-card; just ensure nav-buttons row is gone */
+.vp-edit-form .nav-buttons{display:none}
+
+/* Action row at the bottom of the form card */
+.vp-edit-actions{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;margin-top:18px;padding-top:14px;
+  border-top:1px solid var(--color-border,rgba(148,163,184,0.10));
+}
+.vp-edit-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:10px 22px;border-radius:10px;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:inherit;border:1px solid transparent;
+  transition:all .2s;min-height:42px;
+}
+.vp-edit-btn-primary{
+  background:linear-gradient(135deg,#1e40af,#3b82f6);
+  color:#fff;box-shadow:0 4px 14px rgba(37,99,235,0.30);
+}
+.vp-edit-btn-primary:hover{transform:translateY(-1px)}
+.vp-edit-btn-secondary{
+  background:rgba(148,163,184,0.10);
+  border-color:var(--color-border,rgba(148,163,184,0.18));
+  color:var(--color-text-primary,#e2e8f0);
+}
+.vp-edit-btn-secondary:hover{background:rgba(148,163,184,0.18)}
+.vp-edit-btn-submit{
+  background:linear-gradient(135deg,#059669,#10b981);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(16,185,129,0.32);
+  flex:1;max-width:280px;
+}
+.vp-edit-btn-submit:disabled{opacity:.6;cursor:not-allowed}
+
+/* Mobile tightening */
+@media(max-width:640px){
+  .vp-edit-root{gap:12px}
+  .vp-edit-banner{padding:10px 12px;border-radius:12px;gap:8px}
+  .vp-edit-banner-icon{width:28px;height:28px;border-radius:8px}
+  .vp-edit-banner-title{font-size:12.5px}
+  .vp-edit-banner-sub{font-size:11px;line-height:1.55}
+  .vp-edit-back-btn{width:30px;height:30px;border-radius:8px}
+
+  .vp-edit-progress-meta{font-size:11px}
+
+  .vp-edit-stepper{padding:6px;border-radius:12px;gap:5px}
+  .vp-edit-step-chip{padding:6px 10px;font-size:11.5px}
+  .vp-edit-step-chip .vp-edit-step-num{width:16px;height:16px;font-size:9.5px}
+
+  .vp-edit-note{padding:10px 12px;border-radius:10px}
+  .vp-edit-note-title{font-size:11px}
+  .vp-edit-note-line{font-size:12px;line-height:1.6}
+  .vp-edit-note-field-chip{font-size:10px;padding:2px 8px}
+
+  .vp-edit-actions{margin-top:14px;padding-top:12px;gap:8px}
+  .vp-edit-btn{padding:9px 16px;font-size:12px;min-height:40px;border-radius:9px}
+  .vp-edit-btn-submit{flex:1;max-width:none}
+}
+@media(max-width:380px){
+  .vp-edit-banner-sub{display:none}
+  .vp-edit-step-chip{padding:5px 9px;font-size:11px}
+  .vp-edit-btn{padding:8px 14px;font-size:11.5px;min-height:38px}
+}
